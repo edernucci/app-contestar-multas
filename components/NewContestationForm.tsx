@@ -1,8 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { Calendar, Clock, MapPin, FileText, ChevronDown, Upload, Loader2, Wand2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Clock, MapPin, FileText, ChevronDown } from 'lucide-react';
 import { CONCESSIONAIRES, MOCK_TOLL_PLAZAS } from '../constants';
 import { InfractionData } from '../types';
-import { analyzeTicketImage, generateDefenseArgument } from '../services/geminiService';
 
 interface NewContestationFormProps {
     onSubmit: (data: InfractionData) => void;
@@ -18,81 +17,16 @@ const NewContestationForm: React.FC<NewContestationFormProps> = ({ onSubmit }) =
     description: ''
   });
 
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isGeneratingDefense, setIsGeneratingDefense] = useState(false);
-  const [aiAnalysisError, setAiAnalysisError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleInputChange = (field: keyof InfractionData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate image type
-    if (!file.type.startsWith('image/')) {
-      setAiAnalysisError("Por favor, selecione um arquivo de imagem válido.");
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setAiAnalysisError(null);
-
-    try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
-        const base64Data = base64String.split(',')[1];
-        
-        try {
-            const data = await analyzeTicketImage(base64Data, file.type);
-            
-            setFormData(prev => ({
-                ...prev,
-                plate: data.plate || prev.plate,
-                date: data.date || prev.date,
-                time: data.time || prev.time,
-                concessionaire: data.concessionaire ? 
-                  (CONCESSIONAIRES.find(c => c.toLowerCase().includes(data.concessionaire!.toLowerCase())) || data.concessionaire) 
-                  : prev.concessionaire
-            }));
-        } catch (err) {
-            setAiAnalysisError("Não foi possível extrair dados da imagem. Tente preencher manualmente.");
-        } finally {
-            setIsAnalyzing(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error(error);
-      setIsAnalyzing(false);
-      setAiAnalysisError("Erro ao processar o arquivo.");
-    }
-  };
-
-  const handleGenerateDefense = async () => {
-    if (!formData.plate || !formData.date || !formData.concessionaire) {
-        setAiAnalysisError("Preencha os campos obrigatórios antes de gerar a defesa.");
-        return;
-    }
-    
-    setIsGeneratingDefense(true);
-    try {
-        const defense = await generateDefenseArgument(formData);
-        alert(`Sugestão de Defesa Gerada pela IA:\n\n${defense}`);
-    } catch (e) {
-        setAiAnalysisError("Erro ao gerar defesa.");
-    } finally {
-        setIsGeneratingDefense(false);
-    }
+    setFormError(null);
   };
 
   const handleSubmit = () => {
       if (!formData.plate || !formData.date || !formData.concessionaire) {
-          setAiAnalysisError("Por favor, preencha os campos obrigatórios.");
+          setFormError("Por favor, preencha os campos obrigatórios.");
           return;
       }
       onSubmit(formData);
@@ -108,31 +42,12 @@ const NewContestationForm: React.FC<NewContestationFormProps> = ({ onSubmit }) =
           </div>
           <h2 className="text-lg font-bold text-slate-800">Dados da Infração</h2>
         </div>
-        
-        {/* AI Action */}
-        <div className="flex gap-2">
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept="image/*"
-                onChange={handleFileSelect}
-            />
-            <button 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isAnalyzing}
-                className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
-            >
-                {isAnalyzing ? <Loader2 className="animate-spin" size={14} /> : <Upload size={14} />}
-                {isAnalyzing ? 'Analisando...' : 'Preencher com Foto'}
-            </button>
-        </div>
       </div>
 
       <div className="p-8">
-        {aiAnalysisError && (
+        {formError && (
             <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
-                {aiAnalysisError}
+                {formError}
             </div>
         )}
 
@@ -255,19 +170,6 @@ const NewContestationForm: React.FC<NewContestationFormProps> = ({ onSubmit }) =
                 />
               </div>
             </div>
-          </div>
-          
-           {/* Gemini Action: Help write defense */}
-          <div className="flex justify-end">
-             <button
-                type="button"
-                onClick={handleGenerateDefense}
-                disabled={isGeneratingDefense}
-                className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-2"
-             >
-                 {isGeneratingDefense ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-                 Usar IA para sugerir texto de defesa
-             </button>
           </div>
 
           <div className="pt-6 border-t border-slate-100 flex gap-4">
