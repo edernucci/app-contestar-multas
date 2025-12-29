@@ -11,13 +11,24 @@ interface TicketListProps {
 
 const TicketList: React.FC<TicketListProps> = ({ tickets, selectedTicketId, onSelectTicket, onNewTicket }) => {
   const [filter, setFilter] = React.useState<'Todos' | 'Abertos' | 'Em Análise' | 'Finalizados'>('Todos');
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const filteredTickets = tickets.filter(t => {
-      if (filter === 'Todos') return true;
-      if (filter === 'Abertos') return t.status === 'Aberto';
-      if (filter === 'Em Análise') return t.status === 'Em Análise';
-      if (filter === 'Finalizados') return ['Fechado', 'Deferido', 'Indeferido', 'Respondido'].includes(t.status);
-      return true;
+      // 1. Status Filter
+      let matchesStatus = true;
+      if (filter === 'Abertos') matchesStatus = t.status === 'Aberto';
+      else if (filter === 'Em Análise') matchesStatus = t.status === 'Em Análise';
+      else if (filter === 'Finalizados') matchesStatus = ['Fechado', 'Deferido', 'Indeferido', 'Respondido'].includes(t.status);
+      
+      // 2. Search Filter
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        t.number.toLowerCase().includes(query) || 
+        t.plate.toLowerCase().includes(query) || 
+        t.title.toLowerCase().includes(query) ||
+        (t.descriptionPreview && t.descriptionPreview.toLowerCase().includes(query));
+
+      return matchesStatus && matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -47,8 +58,10 @@ const TicketList: React.FC<TicketListProps> = ({ tickets, selectedTicketId, onSe
         <div className="relative mb-4">
           <input 
             type="text" 
-            placeholder="Buscar por ID ou placa..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por ID, placa ou título..."
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           />
           <Search size={16} className="absolute left-3 top-2.5 text-slate-400" />
         </div>
@@ -69,31 +82,38 @@ const TicketList: React.FC<TicketListProps> = ({ tickets, selectedTicketId, onSe
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {filteredTickets.map(ticket => (
-            <div 
-                key={ticket.id}
-                onClick={() => onSelectTicket(ticket.id)}
-                className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors
-                    ${selectedTicketId === ticket.id ? 'bg-blue-50/50 border-l-4 border-l-blue-600' : 'border-l-4 border-l-transparent'}
-                `}
-            >
-                <div className="flex justify-between items-start mb-1">
-                    <span className={`text-sm font-bold ${selectedTicketId === ticket.id ? 'text-blue-600' : 'text-slate-700'}`}>
-                        {ticket.number}
-                    </span>
-                    <span className="text-xs text-slate-400">{ticket.date}</span>
+        {filteredTickets.length > 0 ? (
+            filteredTickets.map(ticket => (
+                <div 
+                    key={ticket.id}
+                    onClick={() => onSelectTicket(ticket.id)}
+                    className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors
+                        ${selectedTicketId === ticket.id ? 'bg-blue-50/50 border-l-4 border-l-blue-600' : 'border-l-4 border-l-transparent'}
+                    `}
+                >
+                    <div className="flex justify-between items-start mb-1">
+                        <span className={`text-sm font-bold ${selectedTicketId === ticket.id ? 'text-blue-600' : 'text-slate-700'}`}>
+                            {ticket.number}
+                        </span>
+                        <span className="text-xs text-slate-400">{ticket.date}</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-slate-800 text-sm truncate pr-2">{ticket.title}</h3>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase whitespace-nowrap ${getStatusBadge(ticket.status)}`}>
+                            {ticket.status}
+                        </span>
+                    </div>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                        {ticket.descriptionPreview}
+                    </p>
                 </div>
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-slate-800 text-sm truncate pr-2">{ticket.title}</h3>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase whitespace-nowrap ${getStatusBadge(ticket.status)}`}>
-                        {ticket.status}
-                    </span>
-                </div>
-                <p className="text-xs text-slate-500 line-clamp-2">
-                    {ticket.descriptionPreview}
-                </p>
+            ))
+        ) : (
+            <div className="flex flex-col items-center justify-center h-48 text-slate-400 p-4 text-center">
+                <Search size={32} className="mb-2 opacity-20" />
+                <p className="text-sm">Nenhum ticket encontrado.</p>
             </div>
-        ))}
+        )}
       </div>
     </div>
   );
