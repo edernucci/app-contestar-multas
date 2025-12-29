@@ -74,7 +74,7 @@ const App: React.FC = () => {
       <main className="md:ml-64 p-6 md:p-8 min-h-screen transition-all">
         <div className="max-w-[1600px] mx-auto">
             {/* Header Area */}
-            <Header currentRoute={currentRoute} />
+            <Header currentRoute={currentRoute} onNavigate={handleNavigate} />
 
             {/* Content Area */}
             {currentRoute === AppRoute.NEW_CONTESTATION ? (

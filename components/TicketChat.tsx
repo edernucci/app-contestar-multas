@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Send, Paperclip, Smile, Info, FileText } from 'lucide-react';
 import { Ticket, Message } from '../types';
 
@@ -69,6 +69,14 @@ const MessageBubble = ({ message }: { message: Message }) => {
 }
 
 const TicketChat: React.FC<TicketChatProps> = ({ ticket }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [ticket.id, ticket.messages]);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
         case 'Em Análise': return 'bg-orange-100 text-orange-700';
@@ -116,7 +124,7 @@ const TicketChat: React.FC<TicketChatProps> = ({ ticket }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 scroll-smooth" ref={scrollRef}>
            <div className="flex justify-center mb-8">
                <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-full">14 de Outubro, 2023</span>
            </div>

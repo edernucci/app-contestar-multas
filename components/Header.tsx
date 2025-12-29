@@ -4,18 +4,28 @@ import { AppRoute } from '../types';
 
 interface HeaderProps {
     currentRoute?: AppRoute;
+    onNavigate?: (route: AppRoute) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ currentRoute }) => {
+const Header: React.FC<HeaderProps> = ({ currentRoute, onNavigate }) => {
   const isMyContestations = currentRoute === AppRoute.MY_CONTESTATIONS;
+
+  const handleNav = (route: AppRoute) => {
+      if (onNavigate) onNavigate(route);
+  }
 
   return (
     <header className="mb-8">
         <div className="flex items-center justify-between mb-4">
             <nav className="flex items-center text-sm text-slate-500">
-                <span className="hover:text-slate-800 cursor-pointer">Início</span>
+                <span onClick={() => handleNav(AppRoute.NEW_CONTESTATION)} className="hover:text-slate-800 cursor-pointer transition-colors">Início</span>
                 <ChevronRight size={14} className="mx-2" />
-                <span className={`hover:text-slate-800 cursor-pointer ${isMyContestations ? 'font-semibold text-slate-800' : ''}`}>Contestações</span>
+                <span 
+                    onClick={() => handleNav(AppRoute.MY_CONTESTATIONS)}
+                    className={`hover:text-slate-800 cursor-pointer transition-colors ${isMyContestations ? 'font-semibold text-slate-800' : ''}`}
+                >
+                    Contestações
+                </span>
                 {!isMyContestations && (
                     <>
                         <ChevronRight size={14} className="mx-2" />
