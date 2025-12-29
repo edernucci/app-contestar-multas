@@ -21,29 +21,32 @@ export const analyzeTicketImage = async (base64Image: string, mimeType: string):
           {
             text: `Analyze this image of a traffic fine or vehicle document. 
             Extract the license plate, date of occurrence (YYYY-MM-DD), time, and the concessionaire or authority responsible.
-            Return the data in JSON format.`
+            Return the data strictly as a valid JSON object. Do not wrap the response in markdown code blocks.
+            
+            Expected JSON structure:
+            {
+              "plate": "ABC-1234",
+              "date": "YYYY-MM-DD",
+              "time": "HH:MM",
+              "concessionaire": "Name of Authority"
+            }`
           },
         ],
       },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            plate: { type: Type.STRING, description: "Vehicle license plate (e.g., ABC-1234)" },
-            date: { type: Type.STRING, description: "Date of occurrence in YYYY-MM-DD format" },
-            time: { type: Type.STRING, description: "Time of occurrence in HH:MM format" },
-            concessionaire: { type: Type.STRING, description: "Name of the concessionaire or authority" },
-          },
-          required: ["plate"],
-        }
-      }
+      // Config for JSON mode removed as it is not supported by gemini-2.5-flash-image
     });
 
-    const jsonText = response.text;
-    if (!jsonText) return {};
+    let jsonText = response.text || "{}";
     
-    return JSON.parse(jsonText);
+    // Clean up potential markdown formatting from the response
+    jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    try {
+        return JSON.parse(jsonText);
+    } catch (parseError) {
+        console.warn("Failed to parse AI response as JSON:", jsonText);
+        return {};
+    }
   } catch (error) {
     console.error("Error analyzing ticket image:", error);
     throw error;

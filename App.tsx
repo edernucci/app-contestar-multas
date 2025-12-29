@@ -4,7 +4,7 @@ import Header from './components/Header';
 import NewContestationForm from './components/NewContestationForm';
 import InfoWidgets from './components/InfoWidgets';
 import MyContestations from './components/MyContestations';
-import { AppRoute, Ticket, InfractionData } from './types';
+import { AppRoute, Ticket, InfractionData, Message } from './types';
 import { INITIAL_TICKETS } from './constants';
 import { Menu } from 'lucide-react';
 
@@ -43,6 +43,51 @@ const App: React.FC = () => {
       setTickets(prev => [newTicket, ...prev]);
       setSelectedTicketId(newTicketId);
       setCurrentRoute(AppRoute.MY_CONTESTATIONS);
+  };
+
+  const handleSendMessage = (ticketId: string, text: string) => {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      
+      const newUserMessage: Message = {
+          id: `msg-${Date.now()}`,
+          sender: 'user',
+          content: text,
+          timestamp: timeString,
+          type: 'text'
+      };
+
+      // Update state with user message
+      setTickets(prevTickets => prevTickets.map(ticket => {
+          if (ticket.id === ticketId) {
+              return {
+                  ...ticket,
+                  messages: [...ticket.messages, newUserMessage]
+              };
+          }
+          return ticket;
+      }));
+
+      // Simulate a support reply after a short delay
+      setTimeout(() => {
+          const supportMessage: Message = {
+              id: `msg-support-${Date.now()}`,
+              sender: 'support',
+              content: "Obrigado pela informação. Nossa equipe já está analisando sua mensagem.",
+              timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+              type: 'text'
+          };
+
+          setTickets(prevTickets => prevTickets.map(ticket => {
+            if (ticket.id === ticketId) {
+                return {
+                    ...ticket,
+                    messages: [...ticket.messages, supportMessage]
+                };
+            }
+            return ticket;
+          }));
+      }, 2000);
   };
 
   return (
@@ -98,6 +143,7 @@ const App: React.FC = () => {
                         selectedTicketId={selectedTicketId}
                         onSelectTicket={setSelectedTicketId}
                         onNewTicket={() => handleNavigate(AppRoute.NEW_CONTESTATION)}
+                        onSendMessage={handleSendMessage}
                     />
                 </div>
             ) : (

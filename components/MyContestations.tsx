@@ -8,9 +8,10 @@ interface MyContestationsProps {
     selectedTicketId: string | null;
     onSelectTicket: (id: string) => void;
     onNewTicket: () => void;
+    onSendMessage: (ticketId: string, message: string) => void;
 }
 
-const MyContestations: React.FC<MyContestationsProps> = ({ tickets, selectedTicketId, onSelectTicket, onNewTicket }) => {
+const MyContestations: React.FC<MyContestationsProps> = ({ tickets, selectedTicketId, onSelectTicket, onNewTicket, onSendMessage }) => {
   const selectedTicket = tickets.find(t => t.id === selectedTicketId) || tickets[0];
 
   return (
@@ -29,7 +30,7 @@ const MyContestations: React.FC<MyContestationsProps> = ({ tickets, selectedTick
             {/* Right Chat Area - 8 cols */}
             <div className="col-span-8 bg-[#F8FAFC] h-full border-l border-slate-200">
                 {selectedTicket ? (
-                    <TicketChat ticket={selectedTicket} />
+                    <TicketChat ticket={selectedTicket} onSendMessage={onSendMessage} />
                 ) : (
                     <div className="h-full flex items-center justify-center text-slate-400">
                         Selecione uma contestação para ver os detalhes

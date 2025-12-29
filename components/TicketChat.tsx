@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Send, Paperclip, Smile, Info, FileText } from 'lucide-react';
 import { Ticket, Message } from '../types';
 
 interface TicketChatProps {
   ticket: Ticket;
+  onSendMessage: (ticketId: string, message: string) => void;
 }
 
 const MessageBubble = ({ message }: { message: Message }) => {
@@ -68,7 +69,8 @@ const MessageBubble = ({ message }: { message: Message }) => {
     );
 }
 
-const TicketChat: React.FC<TicketChatProps> = ({ ticket }) => {
+const TicketChat: React.FC<TicketChatProps> = ({ ticket, onSendMessage }) => {
+  const [inputValue, setInputValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,6 +78,18 @@ const TicketChat: React.FC<TicketChatProps> = ({ ticket }) => {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [ticket.id, ticket.messages]);
+
+  const handleSend = () => {
+      if (!inputValue.trim()) return;
+      onSendMessage(ticket.id, inputValue);
+      setInputValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+          handleSend();
+      }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -142,13 +156,19 @@ const TicketChat: React.FC<TicketChatProps> = ({ ticket }) => {
               </button>
               <input 
                   type="text" 
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Digite sua mensagem..."
                   className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder:text-slate-400"
               />
               <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                   <Smile size={20} />
               </button>
-              <button className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+              <button 
+                  onClick={handleSend}
+                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
                   <Send size={18} />
               </button>
           </div>
