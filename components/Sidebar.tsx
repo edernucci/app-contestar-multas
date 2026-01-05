@@ -34,7 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, onNavigate }) => {
         </div>
         <div>
           <h1 className="font-bold text-slate-800 leading-tight">Gestão de Multas</h1>
-          <p className="text-xs text-slate-500">Portal do Condutor</p>
+          <p className="text-xs text-slate-500">Portal do Parceiro</p>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, onNavigate }) => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-slate-900 truncate">Roberto Silva</p>
-            <p className="text-xs text-slate-500 truncate">Condutor</p>
+            <p className="text-xs text-slate-500 truncate">Parceiro</p>
           </div>
         </div>
       </div>

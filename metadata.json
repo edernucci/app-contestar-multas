@@ -1,5 +1,5 @@
 {
-  "name": "Gestão de Multas - Portal do Condutor",
+  "name": "Gestão de Multas - Portal do Parceiro",
   "description": "A comprehensive portal for drivers to manage and contest traffic fines, featuring AI-powered ticket analysis.",
   "requestFramePermissions": [
     "camera",
